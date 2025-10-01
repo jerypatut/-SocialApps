@@ -52,19 +52,19 @@ jobs:
       - name: Build uiux
         run: npm run build
 
-  deploy:
-    needs: [backend, uiux] # deploy hanya jalan kalau CI lulus
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.PORT }}
-          script: |
-            cd /home/user/my-social-app
-            git pull origin main
-            docker-compose up --build -d
-            docker-compose exec backend npx sequelize-cli db:migrate
+  # deploy:
+  #   needs: [backend, uiux] # deploy hanya jalan kalau CI lulus
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy to Server via SSH
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.USERNAME }}
+  #         key: ${{ secrets.SSH_KEY }}
+  #         port: ${{ secrets.PORT }}
+  #         script: |
+  #           cd /home/user/my-social-app
+  #           git pull origin main
+  #           docker-compose up --build -d
+  #           docker-compose exec backend npx sequelize-cli db:migrate
