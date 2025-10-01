@@ -1,7 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import { 
-  UnauthenticatedError,
-  NotFoundError,
+import {
   BadRequestError,
   UnauthorizedError 
 } from '../errors/index.js';
