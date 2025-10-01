@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+      - ./backend/src/assets:/app/src/assets
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      REDIS_URL: redis://redis:6379
+      DB_HOST: mysql
+      DB_USER: jaikal
+      DB_PASS: jeripatut
+      DB_NAME: SocialAppss
+      DB_PORT: 3306
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - socialnet
+
+  uiux:
+    build: ./uiux
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./uiux:/app
+      - /app/node_modules
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+    networks:
+      - socialnet
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - socialnet
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: jeripatut
+      MYSQL_DATABASE: SocialAppss
+      MYSQL_USER: jaikal
+      MYSQL_PASSWORD: jeripatut
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - socialnet
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -pjeripatut || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+networks:
+  socialnet:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  backend_node_modules:
+  uiux_node_modules:

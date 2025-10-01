@@ -1,0 +1,445 @@
+openapi: 3.0.0
+info:
+  title: Social API
+  version: 1.0.0
+  description: Dokumentasi API aplikasi sosial (Auth, Posts, Comments, Likes)
+
+servers:
+  - url: http://localhost:3001
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  # ==================== AUTH ====================
+  /auth:
+    post:
+      tags: [Auth]
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username, password]
+              properties:
+                email:
+                  type: string
+                  example: jerynana76@gmail.com
+                username:
+                  type: string
+                  example: jeripatut
+                password:
+                  type: string
+                  example: jeripatut120101
+      responses:
+        '201':
+          description: User berhasil register (link verifikasi dikirim via email)
+
+    get:
+      tags: [Auth]
+      summary: Get user data (current user)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Data user berhasil diambil
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, password]
+              properties:
+                identifier:
+                  type: string
+                  example: jeripatut
+                password:
+                  type: string
+                  example: jeripatut120101
+      responses:
+        '200':
+          description: Login berhasil, return JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  user:
+                    type: object
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  example: jerynana76@gmail.com
+      responses:
+        '200':
+          description: Link reset password berhasil dikirim
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  example: 9f8b7a6c...
+                newPassword:
+                  type: string
+                  example: 120101jeripatut
+      responses:
+        '200':
+          description: Password berhasil direset
+
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verificationToken, email]
+              properties:
+                verificationToken:
+                  type: string
+                  example: 9f8b7a6c...
+                email:
+                  type: string
+                  example: jerynana76@gmail.com
+      responses:
+        '200':
+          description: Email berhasil diverifikasi
+
+  /auth/oauth/google:
+    post:
+      tags: [Auth]
+      summary: OAuth Google login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tokenId]
+              properties:
+                tokenId:
+                  type: string
+                  example: 9f8b7a6c...
+      responses:
+        '200':
+          description: Login via Google berhasil
+
+  /auth/logout:
+    delete:
+      tags: [Auth]
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout sukses
+
+  /auth/update:
+    put:
+      tags: [Auth]
+      summary: Update user data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: jeripatut
+                oldPassword:
+                  type: string
+                  example: jeripatut120101
+                newPassword:
+                  type: string
+                  example: jeripatut1201011212
+                name:
+                  type: string
+                  example: jeripatut
+      responses:
+        '200':
+          description: Data user berhasil diupdate
+
+  /auth/checkEmail:
+    get:
+      tags: [Auth]
+      summary: Cek apakah email sudah dipakai
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+            example: jerynana76@gmail.com
+      responses:
+        '200':
+          description: Email tersedia / sudah dipakai
+
+  /auth/checkUsername:
+    get:
+      tags: [Auth]
+      summary: Cek apakah username sudah dipakai
+      parameters:
+        - in: query
+          name: username
+          required: true
+          schema:
+            type: string
+            example: jeripatut
+      responses:
+        '200':
+          description: Username tersedia / sudah dipakai
+
+  /auth/delete:
+    delete:
+      tags: [Auth]
+      summary: Delete user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User berhasil dihapus
+
+  # ==================== COMMENTS ====================
+  /comments:
+    post:
+      tags: [Comments]
+      summary: Add new comment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [commentBody, postId]
+              properties:
+                commentBody:
+                  type: string
+                  example: "Komentar baru yang keren!"
+                postId:
+                  type: integer
+                  example: 5
+      responses:
+        '201':
+          description: Komentar berhasil ditambahkan
+
+  /comments/{postId}:
+    get:
+      tags: [Comments]
+      summary: Get comments by Post ID
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: integer
+          description: ID dari post
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daftar komentar berhasil diambil
+
+  /comments/{commentId}:
+    delete:
+      tags: [Comments]
+      summary: Delete a comment
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: integer
+          description: ID dari komentar
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Komentar berhasil dihapus
+
+  /comments/{id}:
+    put:
+      tags: [Comments]
+      summary: Update a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [commentBody]
+              properties:
+                commentBody:
+                  type: string
+                  example: "Komentar sudah diperbarui!"
+      responses:
+        '200':
+          description: Komentar berhasil diperbarui
+
+  # ==================== LIKES ====================
+  /like:
+    post:
+      tags: [Likes]
+      summary: Toggle like/unlike a post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId, userId]
+              properties:
+                postId:
+                  type: integer
+                  example: 5
+                userId:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Like/unlike berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liked:
+                    type: boolean
+                    example: true
+                  totalLikes:
+                    type: integer
+                    example: 10
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+
+  # ==================== POSTS ====================
+  /posts:
+    get:
+      tags: [Posts]
+      summary: Ambil semua posts
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID user untuk cek mana saja post yang sudah di-like
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daftar posts berhasil diambil
+
+    post:
+      tags: [Posts]
+      summary: Buat post baru
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, postText, image]
+              properties:
+                title:
+                  type: string
+                  example: Judul Post Baru
+                postText:
+                  type: string
+                  example: Isi dari post baru ini
+                image:
+                  type: string
+                  format: binary   
+      responses:
+        '201':
+          description: Post berhasil dibuat
+
+  /posts/{id}:
+    get:
+      tags: [Posts]
+      summary: Ambil detail post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Detail post berhasil diambil
+
+    delete:
+      tags: [Posts]
+      summary: Hapus post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Post berhasil dihapus

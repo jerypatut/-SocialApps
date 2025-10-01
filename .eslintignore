@@ -1,0 +1,37 @@
+# ============================
+# DEPENDENCIES
+# ============================
+# Abaikan semua folder dependency
+node_modules/
+uiux/node_modules/
+backend/node_modules/
+
+# ============================
+# BUILD & DIST OUTPUT
+# ============================
+# Abaikan hasil build/kompilasi (bisa dihasilkan ulang)
+build/
+dist/
+out/
+uiux/build/
+uiux/dist/
+backend/build/
+backend/dist/
+
+# ============================
+# TEST COVERAGE & REPORTS
+# ============================
+# Abaikan hasil coverage testing
+coverage/
+*.lcov
+
+# ============================
+# EDITOR & ENV FILES
+# ============================
+# Abaikan konfigurasi editor
+.vscode/
+.idea/
+
+# Abaikan file environment
+.env
+.env.*

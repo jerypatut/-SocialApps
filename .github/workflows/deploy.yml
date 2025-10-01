@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (Backend)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies (Backend)
+        run: npm install
+
+      - name: Run ESLint (Backend)
+        run: npm run lint
+
+      - name: Run Tests (Backend)
+        run: npm test
+
+  uiux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: uiux
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (uiux)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies (uiux)
+        run: npm install
+
+      - name: Run ESLint (uiux)
+        run: npm run lint
+
+      - name: Build uiux
+        run: npm run build
+
+  deploy:
+    needs: [backend, uiux] # deploy hanya jalan kalau CI lulus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/user/my-social-app
+            git pull origin main
+            docker-compose up --build -d
+            docker-compose exec backend npx sequelize-cli db:migrate
