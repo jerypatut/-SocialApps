@@ -29,8 +29,6 @@ import {
   UserResponseDto,
   MessageResponseDto,
   LoginResponseDto,
-  CheckEmailDto,
-  CheckUsernameDto
 } from '../dtos/user/user.req.dto.js';
 
 // ======= Controller =======
@@ -150,7 +148,8 @@ export const Logout = async (req, res, next) => {
     res.clearCookie('accessToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     });
 
     return res.status(StatusCodes.OK).json(new MessageResponseDto('Logged out successfully'));
@@ -164,29 +163,28 @@ export const Logout = async (req, res, next) => {
 
 export const checkEmailController = async (req, res, next) => {
   try {
-    const dto = new CheckEmailDto(req.query.email);
-    const exists = await checkEmail(dto);
-    return res.status(StatusCodes.OK).json({ exists });
+    const email = req.query.email;
+    if (!email) return res.status(400).json({ error: 'Email wajib diisi' });
+
+    const exists = await checkEmail(email);
+    return res.status(200).json({ exists }); // true / false
   } catch (error) {
-    if (error instanceof BadRequestError || error instanceof UnauthorizedError) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
-    }
     next(error);
   }
 };
 
 export const checkUsernameController = async (req, res, next) => {
   try {
-    const dto = new CheckUsernameDto(req.query.username);
-    const exists = await checkUsername(dto);
-    return res.status(StatusCodes.OK).json({ exists });
+    const username = req.query.username;
+    if (!username) return res.status(400).json({ error: 'Username wajib diisi' });
+
+    const exists = await checkUsername(username);
+    return res.status(200).json({ exists }); // true / false
   } catch (error) {
-    if (error instanceof BadRequestError || error instanceof UnauthorizedError) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
-    }
     next(error);
   }
 };
+
 
 export const deleteUserController = async (req, res, next) => {
   try {

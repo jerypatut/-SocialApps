@@ -69,8 +69,8 @@ export const addComment = async (reqDto) => {
  * update komentar berdasarkan id
  */
 export const updateComment = async (reqDto)  => {
-    const comment = await Comments.findByPk(reqDto.commentId)
-    console.log(typeof reqDto.commentId, reqDto.commentId);
+    const comment = await Comments.findByPk(reqDto.id);
+    console.log(typeof reqDto.commentId, reqDto.id);
     if(!comment) {
     throw new NotFoundError('comment not found');
     }
@@ -83,8 +83,7 @@ export const updateComment = async (reqDto)  => {
 
   // hapus cache biar nanti get ambil data baru
   await redisClient.del(`comments:${comment.postId}`);
-
-  return comment;
+   return { data: comment };
 };
 
 

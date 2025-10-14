@@ -1,7 +1,7 @@
 import redis from "redis";
 
 const client = redis.createClient({
-  url: process.env.REDIS_URL || "redis://redis:6379",
+  url: process.env.REDIS_URL || "redis://localhost:6379",  // default ke localhost
   socket: {
     reconnectStrategy: (retries) => {
       console.log(`Redis reconnect attempt: ${retries}`);
@@ -18,12 +18,11 @@ client.on("error", (err) => {
   console.error("❌ Redis Client Error:", err);
 });
 
-// Jangan FLUSHALL di production ❌
 (async () => {
   try {
     await client.connect();
 
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "development") {
       await client.flushAll();
       console.log("🧹 Redis cache flushed (dev only)");
     }

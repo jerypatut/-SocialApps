@@ -1,5 +1,6 @@
 export class ToggleLikeResDto {
-  constructor({ liked }) {
+  constructor({ liked, totalLikes }) {
     this.liked = liked;
+    this.totalLikes = totalLikes;
   }
 }

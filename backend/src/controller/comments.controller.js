@@ -40,7 +40,6 @@ export const postAddComment = async (req, res, next) => {
     if (!reqDto.username || !reqDto.postId) {
       throw new BadRequestError('Missing required fields: username or postId');
     }
-
     const result = await CommentService.addComment(reqDto);
     const resDto = new SingleCommentResDto(result);
     return sendResponse(res, StatusCodes.CREATED, true, "Comment added successfully", resDto);

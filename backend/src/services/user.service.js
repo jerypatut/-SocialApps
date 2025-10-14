@@ -1,6 +1,6 @@
 // src/services/auth.service.js
 import db from '../../models/index.js';
-const { Users } = db;
+const { Users, Posts,Comments,Likes } = db;
 
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
@@ -32,7 +32,6 @@ const client = new OAuth2Client(
 );
 
 // ================== Services ==================
-
 // Register user
 export const registerUser = async ({ email, username, password }) => {
   const existingUser = await Users.findOne({
@@ -51,7 +50,7 @@ export const registerUser = async ({ email, username, password }) => {
     verificationToken,
   });
 
-  const verifyUrl = `http://localhost:8080/user/verify-email?token=${verificationToken}&email=${email}`;
+  const verifyUrl = `http://localhost:3000/user/verify-email?token=${verificationToken}&email=${email}`;
    sendEmail(
     newUser.email,
     'Please verify your email',
@@ -99,7 +98,12 @@ const user = await Users.findOne({
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new BadRequestError('Invalid password');
 
-  const payload = { id: user.id, username: user.username, email: user.email };
+  const payload = {
+     id: user.id,
+     username: user.username,
+    email: user.email
+   };
+   
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
   const plainUser = user.toJSON();
@@ -125,7 +129,7 @@ export const forgotPassword = async ({ email }) => {
   user.resetPasswordExpires = resetExpires;
   await user.save();
 
-  const resetUrl = `http://localhost:8080/reset-password?token=${resetToken}`;
+  const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
   sendEmail(
     email,
     'Password Reset Request',
@@ -172,7 +176,8 @@ export const googleLogin = async ({ tokenId }) => {
   const { email, name, sub: googleId } = payload;
 
   let user = await Users.findOne({ where: { email } });
-  if (!user) {
+
+  if (!user){
     // pastikan username unik
     let username = name.replace(/\s/g, '').toLowerCase() + Math.floor(Math.random() * 1000);
     while (await Users.findOne({ where: { username } })) {
@@ -237,6 +242,7 @@ export const getUserData = async (token) => {
 };
 
 // Update user
+// ✅ Update user + sinkron ke semua relasi (Posts, Comments, Likes)
 export const updateUserData = async (token, { username, oldPassword, newPassword, name, email }) => {
   let decoded;
   try {
@@ -248,31 +254,58 @@ export const updateUserData = async (token, { username, oldPassword, newPassword
   const user = await Users.findByPk(decoded.id);
   if (!user) throw new NotFoundError('User not found');
 
-  // update username
+  // 🔹 Update username
+  let oldUsername = user.username;
   if (username) user.username = username.trim().toLowerCase();
 
-  // update name (display name dari Google / user biasa)
+  // 🔹 Update display name (untuk tampilan nama publik)
   if (name) user.name = name.trim();
 
-  // update email
+  // 🔹 Update email
   if (email) user.email = email.trim().toLowerCase();
 
-  // update password (hanya untuk user manual, bukan google login)
+  // 🔹 Update password
   if (oldPassword && newPassword) {
     if (!user.password) {
       throw new BadRequestError('Password update not available for Google accounts');
     }
+
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) throw new BadRequestError('Old password is incorrect');
+
     user.password = await bcrypt.hash(newPassword, 10);
   }
 
+  // ✅ Simpan perubahan user
   await user.save();
 
-  // convert ke plain object
-  const plainUser = user.toJSON();
+  // 🔥 Sinkronisasi nama/username ke seluruh relasi
+  if (username) {
+    try {
+      // Update semua postingan user
+      await Posts.update(
+        { username: user.username },
+        { where: { userId: user.id } }
+      );
 
-  // ⚠️ JANGAN kirim password ke frontend
+      // Update semua komentar user
+      await Comments.update(
+        { username: user.username },
+        { where: { userId: user.id } }
+      );
+
+      // Update semua like user
+      await Likes.update(
+        { username: user.username },
+        { where: { userId: user.id } }
+      );
+    } catch (err) {
+      console.warn('Gagal sinkron relasi posts/comments/likes:', err.message);
+    }
+  }
+
+  // 🧠 Update cache Redis (biar cepat dibaca ulang)
+  const plainUser = user.toJSON();
   delete plainUser.password;
   delete plainUser.verificationToken;
   delete plainUser.resetPasswordToken;
@@ -283,7 +316,7 @@ export const updateUserData = async (token, { username, oldPassword, newPassword
     console.warn('Redis set failed:', err.message);
   }
 
-  return plainUser; // return lengkap (id, email, username, name, googleId, dll)
+  return plainUser;
 };
 
 // Logout
@@ -305,19 +338,13 @@ export const logoutUser = async (token) => {
 
 
 export const checkEmail = async (email) => {
-  const exists = await Users.findOne ({
-    where:{email}
-  });
-  if (exists) throw new BadRequestError('email sudah ada');
-  return !!exists;
+  const exists = await Users.findOne({ where: { email } });
+  return !!exists; // true jika sudah ada, false jika belum
 };
 
 export const checkUsername = async (username) => {
-  const usernameExists = await Users.findOne({
-    where:{username}
-  });
-  if(usernameExists) throw new BadRequestError('usernamenya sudah ada')
-    return !!usernameExists;
+  const exists = await Users.findOne({ where: { username } });
+  return !!exists; // true jika sudah ada, false jika belum
 };
 
 

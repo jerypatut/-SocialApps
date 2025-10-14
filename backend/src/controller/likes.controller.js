@@ -8,7 +8,6 @@ export const toggleLike = async (req, res, next) => {
     const reqDto = ToggleLikeReqDto.fromRequest(req);
     const result = await LikesService.toggleLike(reqDto);
     const resDto = new ToggleLikeResDto(result);
-    res.status(StatusCodes.OK).json(resDto);
     return sendResponse(res, StatusCodes.OK,true, "like", resDto);
   } catch (error) {
    next(error);

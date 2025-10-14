@@ -5,7 +5,7 @@ export default {
     username: process.env.DB_USER || "jaikal",
     password: process.env.DB_PASS || "jeripatut",
     database: process.env.DB_NAME || "SocialAppss",
-    host: process.env.DB_HOST || "mysql",
+    host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 3306,
     dialect: "mysql",
     dialectOptions: {
@@ -22,7 +22,7 @@ export default {
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASS || "jeripatut",
     database: process.env.DB_NAME || "database_test",
-    host: process.env.DB_HOST || "mysql",
+    host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 3306,
     dialect: "mysql",
     dialectOptions: { ssl: false }
@@ -31,7 +31,7 @@ export default {
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASS || "jeripatut",
     database: process.env.DB_NAME || "database_production",
-    host: process.env.DB_HOST || "mysql",
+    host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 3306,
     dialect: "mysql",
     dialectOptions: { ssl: false }

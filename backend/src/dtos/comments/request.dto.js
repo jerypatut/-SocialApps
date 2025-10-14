@@ -29,8 +29,8 @@ export class AddCommentReqDto {
 
 // UPDATE komentar
 export class UpdateCommentReqDto {
-  constructor({ commentId, commentBody, userId, username }) {
-    this.commentId = commentId;
+  constructor({ id, commentBody, userId, username }) {
+    this.id = id;
     this.commentBody = commentBody;
     this.userId = userId;
     this.username = username;
@@ -38,7 +38,7 @@ export class UpdateCommentReqDto {
 
   static fromRequest(req) {
     return new UpdateCommentReqDto({
-      commentId: req.params.id,
+      id: req.params.id,
       commentBody: req.body.commentBody,
       userId: req.user?.id,
       username: req.user?.username,
